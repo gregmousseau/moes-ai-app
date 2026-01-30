@@ -1,102 +1,179 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
-interface AgentDetailPageProps {
-  params: { id: string };
-}
+// Mock data - would come from Supabase
+const mockAgent = {
+  id: '1',
+  name: 'Sales Assistant',
+  emoji: '🤖',
+  status: 'active',
+  channels: ['Slack', 'Email'],
+  stats: {
+    messagesToday: 142,
+    resolutionRate: 89,
+    avgResponseTime: '1.2s',
+  },
+};
 
-export default function AgentDetailPage({ params }: AgentDetailPageProps) {
-  const { id } = params;
+const mockConversations = [
+  { id: 1, user: 'John Davis', lastMessage: "What's the pricing for enterprise?", time: '2m ago', unread: true },
+  { id: 2, user: 'Sarah Miller', lastMessage: 'Thanks for the info!', time: '15m ago', unread: false },
+  { id: 3, user: 'Mike Thompson', lastMessage: 'Do you have a free trial?', time: '1h ago', unread: false },
+  { id: 4, user: 'Emily Chen', lastMessage: 'Great, I\'ll check that out', time: '2h ago', unread: false },
+];
+
+const mockMessages = [
+  { id: 1, role: 'user', content: "What's the pricing for the Pro plan?", time: '10:32 AM' },
+  { id: 2, role: 'assistant', content: "Great question! Our Pro plan is $99/month and includes:\n\n• Unlimited users\n• Priority support\n• Advanced analytics\n• API access\n\nWould you like me to set up a demo call?", time: '10:32 AM' },
+  { id: 3, role: 'user', content: "Yes, that would be great. I'm available tomorrow afternoon.", time: '10:33 AM' },
+  { id: 4, role: 'assistant', content: "Perfect! I've found some available slots for tomorrow afternoon:\n\n• 2:00 PM EST\n• 3:30 PM EST\n• 4:00 PM EST\n\nWhich time works best for you?", time: '10:33 AM' },
+];
+
+export default function AgentDetailPage() {
+  const params = useParams();
+  const [selectedConversation, setSelectedConversation] = useState(1);
+  const [messageInput, setMessageInput] = useState('');
 
   return (
-    <div className="flex flex-col h-full bg-[#0f0f1a] text-[#f8fafc]">
-      {/* Header */}
-      <div className="flex justify-between items-center p-6 bg-[#1e1e32] border-b border-[#334155]">
-        <Link href="/dashboard" className="text-[#a78bfa] hover:underline flex items-center">
-          ← Agents
-        </Link>
-        <h1 className="text-2xl font-bold">Sales Assistant (ID: {id})</h1>
-        <div className="flex items-center space-x-4">
-          <span className="text-green-500">● Active</span>
-          <button className="bg-[#7c3aed] hover:bg-[#a78bfa] text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">Edit</button>
+    <div className="flex h-[calc(100vh-2rem)] -m-8">
+      {/* Conversations Sidebar */}
+      <aside className="w-80 bg-[#1e1e32] border-r border-slate-700/50 flex flex-col">
+        {/* Agent Header */}
+        <div className="p-4 border-b border-slate-700/50">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{mockAgent.emoji}</span>
+            <div className="flex-1">
+              <h1 className="font-bold text-lg">{mockAgent.name}</h1>
+              <p className="text-sm text-slate-400">{mockAgent.channels.join(' • ')}</p>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+              mockAgent.status === 'active' 
+                ? 'bg-green-500/10 text-green-400' 
+                : 'bg-orange-500/10 text-orange-400'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                mockAgent.status === 'active' ? 'bg-green-400' : 'bg-orange-400'
+              }`} />
+              {mockAgent.status === 'active' ? 'Active' : 'Paused'}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-grow">
-        {/* Conversations Sidebar */}
-        <aside className="w-80 bg-[#1e1e32] p-6 border-r border-[#334155] overflow-y-auto">
-          <h2 className="text-xl font-semibold mb-6">Conversations</h2>
-          <div className="space-y-4">
-            {/* Conversation Item 1 */}
-            <div className="p-3 bg-[#0f0f1a] rounded-md border border-[#334155] cursor-pointer hover:bg-[#334155]">
-              <p className="font-medium text-[#f8fafc]">🔵 John Davis</p>
-              <p className="text-sm text-[#94a3b8] truncate">"What's the pricing..."</p>
-              <p className="text-xs text-[#64748b] mt-1">2 min ago</p>
+        {/* Search */}
+        <div className="p-4">
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            className="w-full px-4 py-2.5 bg-[#0f0f1a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+          />
+        </div>
+
+        {/* Conversations List */}
+        <div className="flex-1 overflow-y-auto">
+          {mockConversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => setSelectedConversation(conv.id)}
+              className={`w-full p-4 text-left border-b border-slate-700/30 transition-colors ${
+                selectedConversation === conv.id
+                  ? 'bg-violet-600/10 border-l-2 border-l-violet-500'
+                  : 'hover:bg-slate-700/30'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  {conv.unread && <span className="w-2 h-2 bg-violet-500 rounded-full" />}
+                  <span className="font-medium">{conv.user}</span>
+                </div>
+                <span className="text-xs text-slate-500">{conv.time}</span>
+              </div>
+              <p className="text-sm text-slate-400 truncate mt-1">{conv.lastMessage}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Quick Stats */}
+        <div className="p-4 border-t border-slate-700/50 bg-[#0f0f1a]/50">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-lg font-bold">{mockAgent.stats.messagesToday}</p>
+              <p className="text-xs text-slate-500">Today</p>
             </div>
-            {/* Conversation Item 2 */}
-            <div className="p-3 bg-[#0f0f1a] rounded-md border border-[#334155] cursor-pointer hover:bg-[#334155]">
-              <p className="font-medium text-[#f8fafc]">⚪ Sarah Miller</p>
-              <p className="text-sm text-[#94a3b8] truncate">"Thanks for..."</p>
-              <p className="text-xs text-[#64748b] mt-1">15 min ago</p>
+            <div>
+              <p className="text-lg font-bold">{mockAgent.stats.resolutionRate}%</p>
+              <p className="text-xs text-slate-500">Resolved</p>
             </div>
-            {/* Conversation Item 3 */}
-            <div className="p-3 bg-[#0f0f1a] rounded-md border border-[#334155] cursor-pointer hover:bg-[#334155]">
-              <p className="font-medium text-[#f8fafc]">⚪ Mike Thompson</p>
-              <p className="text-sm text-[#94a3b8] truncate">"Do you have..."</p>
-              <p className="text-xs text-[#64748b] mt-1">1 hour ago</p>
+            <div>
+              <p className="text-lg font-bold">{mockAgent.stats.avgResponseTime}</p>
+              <p className="text-xs text-slate-500">Avg time</p>
             </div>
-            <Link href="/agents/{id}/conversations" className="text-[#a78bfa] hover:underline text-sm block mt-4">View all →</Link>
           </div>
+        </div>
+      </aside>
 
-          {/* Quick Stats */}
-          <div className="mt-8 pt-6 border-t border-[#334155]">
-            <h3 className="text-lg font-semibold text-[#f8fafc] mb-4">Quick Stats</h3>
-            <p className="text-[#94a3b8] text-sm mb-2">Today: <span className="font-medium text-[#f8fafc]">42 msgs</span></p>
-            <p className="text-[#94a3b8] text-sm mb-2">Resolved: <span className="font-medium text-[#f8fafc]">89%</span></p>
-            <p className="text-[#94a3b8] text-sm">Avg response: <span className="font-medium text-[#f8fafc]">1.2s</span></p>
-            <div className="mt-6 space-y-3">
-              <button className="w-full text-left text-[#a78bfa] hover:underline text-sm">📊 Analytics</button>
-              <button className="w-full text-left text-[#a78bfa] hover:underline text-sm">⚙️ Settings</button>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-[#0f0f1a]">
+        {/* Chat Header */}
+        <div className="p-4 border-b border-slate-700/50 bg-[#1e1e32] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-semibold">
+              {mockConversations.find(c => c.id === selectedConversation)?.user[0]}
+            </div>
+            <div>
+              <h2 className="font-semibold">
+                {mockConversations.find(c => c.id === selectedConversation)?.user}
+              </h2>
+              <p className="text-sm text-slate-400">via Slack • Started 2h ago</p>
             </div>
           </div>
-        </aside>
+          <div className="flex items-center gap-2">
+            <button className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors">
+              📋 View Profile
+            </button>
+            <button className="px-4 py-2 text-sm bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 rounded-lg transition-colors">
+              🙋 Escalate
+            </button>
+          </div>
+        </div>
 
-        {/* Conversation Main View */}
-        <div className="flex-1 flex flex-col bg-[#0f0f1a]">
-          <div className="flex-grow p-6 overflow-y-auto space-y-4">
-            {/* Example Conversation */} 
-            <div className="flex justify-start">
-              <div className="bg-[#334155] p-3 rounded-lg max-w-md">
-                <p className="font-medium text-[#f8fafc]">👤 John:</p>
-                <p className="text-[#f8fafc]">What's the pricing for the Pro plan?</p>
-                <p className="text-xs text-[#64748b] text-right mt-1">10:32 AM</p>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {mockMessages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.role === 'assistant' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-lg rounded-2xl p-4 ${
+                msg.role === 'assistant'
+                  ? 'bg-violet-600 text-white'
+                  : 'bg-[#1e1e32] border border-slate-700/50'
+              }`}>
+                <p className="whitespace-pre-wrap">{msg.content}</p>
+                <p className={`text-xs mt-2 ${msg.role === 'assistant' ? 'text-violet-200' : 'text-slate-500'}`}>
+                  {msg.time}
+                </p>
               </div>
             </div>
-            <div className="flex justify-end">
-              <div className="bg-[#7c3aed] p-3 rounded-lg max-w-md">
-                <p className="font-medium text-white">🤖 Sales Assistant:</p>
-                <p className="text-white">Great question! Our Pro plan is $99/month and includes: </p>
-                <ul className="list-disc list-inside text-white ml-4">
-                  <li>Unlimited users</li>
-                  <li>Priority support</li>
-                  <li>Advanced analytics</li>
-                </ul>
-                <p className="text-white mt-2">Would you like me to set up a demo call?</p>
-                <p className="text-xs text-white text-right mt-1">10:32 AM</p>
-              </div>
-            </div>
-            {/* ... more messages */}
-          </div>
-          {/* Message Input */}
-          <div className="p-6 bg-[#1e1e32] border-t border-[#334155] flex items-center space-x-4">
-            <button className="text-[#a78bfa] hover:underline text-sm">🔀 Transfer to Human</button>
+          ))}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t border-slate-700/50 bg-[#1e1e32]">
+          <div className="flex items-center gap-3">
             <input
               type="text"
-              placeholder="Type a message..."
-              className="flex-1 px-4 py-2 bg-[#0f0f1a] border border-[#334155] rounded-md focus:ring-[#a78bfa] focus:border-[#a78bfa] text-[#f8fafc]"
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              placeholder="Type as the agent..."
+              className="flex-1 px-4 py-3 bg-[#0f0f1a] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
             />
-            <button className="bg-[#7c3aed] hover:bg-[#a78bfa] text-white py-2 px-4 rounded-md font-medium transition-colors">Send</button>
+            <button className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-medium rounded-xl transition-colors">
+              Send
+            </button>
           </div>
+          <p className="text-xs text-slate-500 mt-2">
+            💡 Messages you send appear as the agent. Use this to help or take over conversations.
+          </p>
         </div>
       </div>
     </div>
