@@ -1,23 +1,104 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    // TODO: Wire up Supabase auth
+    try {
+      // Placeholder - will add Supabase auth
+      console.log('Sign in:', { email, password });
+      router.push('/dashboard');
+    } catch (err) {
+      setError('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="p-8 rounded shadow-md w-full max-w-md bg-gray-800">
-      <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
-      <form>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-          <input type="email" id="email" name="email" className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+    <div className="w-full max-w-md">
+      {/* Card */}
+      <div className="bg-[#1e1e32] border border-slate-700/50 rounded-2xl p-8 shadow-xl">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
+          <p className="text-slate-400">Sign in to your account</p>
         </div>
-        <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
-          <input type="password" id="password" name="password" className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-[#0f0f1a] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 bg-[#0f0f1a] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 text-slate-400 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-violet-500 focus:ring-violet-500" />
+              Remember me
+            </label>
+            <Link href="/auth/forgot-password" className="text-violet-400 hover:text-violet-300 transition-colors">
+              Forgot password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors shadow-lg shadow-violet-600/20"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-slate-400">
+          Don't have an account?{' '}
+          <Link href="/auth/sign-up" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+            Sign up
+          </Link>
         </div>
-        <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Sign In</button>
-      </form>
-      <div className="mt-4 text-center">
-        <p className="text-sm text-gray-400">Don't have an account? <a href="/auth/sign-up" className="font-medium text-indigo-400 hover:text-indigo-300">Sign Up</a></p>
-        <p className="text-sm text-gray-400">Forgot your password? <a href="/auth/forgot-password" className="font-medium text-indigo-400 hover:text-indigo-300">Reset It</a></p>
       </div>
     </div>
   );
