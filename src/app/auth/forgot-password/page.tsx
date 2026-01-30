@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -14,15 +15,20 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     
-    // TODO: Wire up Supabase auth
-    try {
-      console.log('Reset password for:', email);
-      setSent(true);
-    } catch (err) {
-      setError('Could not send reset link. Please try again.');
-    } finally {
+    const supabase = createClient();
+    
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+
+    if (resetError) {
+      setError(resetError.message);
       setLoading(false);
+      return;
     }
+
+    setSent(true);
+    setLoading(false);
   };
 
   if (sent) {

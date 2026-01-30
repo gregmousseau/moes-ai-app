@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -16,16 +17,21 @@ export default function SignInPage() {
     setLoading(true);
     setError('');
     
-    // TODO: Wire up Supabase auth
-    try {
-      // Placeholder - will add Supabase auth
-      console.log('Sign in:', { email, password });
-      router.push('/dashboard');
-    } catch (err) {
-      setError('Invalid email or password');
-    } finally {
+    const supabase = createClient();
+    
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message);
       setLoading(false);
+      return;
     }
+
+    router.push('/dashboard');
+    router.refresh();
   };
 
   return (
