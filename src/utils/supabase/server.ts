@@ -1,8 +1,8 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +17,6 @@ export function createClient() {
             cookieStore.set({ name, value, ...options })
           } catch (error) {
             // The `cookies().set()` method can only be called from a Server Component or Server Action.
-            // This error can be ignored if you are processing a form submission with an input type of `hidden`
           }
         },
         remove(name: string, options: CookieOptions) {
@@ -25,7 +24,6 @@ export function createClient() {
             cookieStore.set({ name, value: '', ...options })
           } catch (error) {
             // The `cookies().set()` method can only be called from a Server Component or Server Action.
-            // This error can be ignored if you are processing a form submission with an input type of `hidden`
           }
         },
       },
